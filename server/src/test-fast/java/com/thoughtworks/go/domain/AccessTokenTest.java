@@ -34,25 +34,17 @@ class AccessTokenTest {
         AccessToken.AccessTokenWithDisplayValue token = AccessToken.create(null, null, null, new TestingClock());
         token.validate(null);
 
-        assertThat(token.errors())
-                .hasSize(3)
-                .containsEntry("authConfigId", List.of("must not be blank"))
-                .containsEntry("description", List.of("must not be blank"))
-                .containsEntry("username", List.of("must not be blank"));
+        assertThat(token.errors()).hasSize(3).containsEntry("authConfigId", List.of("must not be blank")).containsEntry("description", List.of("must not be blank")).containsEntry("username", List.of("must not be blank"));
     }
 
     @Test
     void shouldInitializeSaltAndToken() {
         AccessToken.AccessTokenWithDisplayValue token = AccessToken.create(null, null, null, new TestingClock());
 
-        assertThat(token.getDisplayValue())
-                .hasSize(40);
-        assertThat(token.getValue())
-                .hasSize(64);
-        assertThat(token.getSaltId())
-                .hasSize(8);
-        assertThat(token.getSaltValue())
-                .hasSize(64);
+        assertThat(token.getDisplayValue()).hasSize(40);
+        assertThat(token.getValue()).hasSize(64);
+        assertThat(token.getSaltId()).hasSize(8);
+        assertThat(token.getSaltValue()).hasSize(64);
     }
 
 
@@ -60,8 +52,7 @@ class AccessTokenTest {
     void hashToken_shouldHashTheProvidedString() throws Exception {
         AccessToken.AccessTokenWithDisplayValue token = AccessToken.create(null, null, null, new TestingClock());
 
-        SecretKey key = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
-                .generateSecret(new PBEKeySpec(token.getDisplayValue().substring(8).toCharArray(), token.getSaltValue().getBytes(StandardCharsets.UTF_8), 4096, 256));
+        SecretKey key = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(new PBEKeySpec(token.getDisplayValue().substring(8).toCharArray(), token.getSaltValue().getBytes(StandardCharsets.UTF_8), 4096, 256));
 
         assertThat(token.getValue()).isEqualTo(Hex.encodeHexString(key.getEncoded()));
     }
@@ -100,5 +91,36 @@ class AccessTokenTest {
         assertThat(token.getRevokedBy()).isEqualTo("admin");
         assertThat(token.getRevokeCause()).isEqualTo("Revoked because user was deleted by admin");
         assertThat(token.getRevokedAt()).isEqualTo(clock.currentTimestamp());
+    }
+
+    // 261P
+    @Test
+    void hashToken_shouldHashShortString() throws Exception {
+        String shortString = "abc123";
+        String saltValue = "salt";
+        String hashed = AccessToken.digestToken(shortString, saltValue);
+
+        assertThat(hashed).isNotNull();
+        // Add assertions for the expected hash value.
+    }
+
+    @Test
+    void hashToken_shouldHashMediumString() throws Exception {
+        String mediumString = "testing123";
+        String saltValue = "salt";
+        String hashed = AccessToken.digestToken(mediumString, saltValue);
+
+        assertThat(hashed).isNotNull();
+        // Add assertions for the expected hash value.
+    }
+
+    @Test
+    void hashToken_shouldHashLongString() throws Exception {
+        String longString = "thisisaverylongstring";
+        String saltValue = "salt";
+        String hashed = AccessToken.digestToken(longString, saltValue);
+
+        assertThat(hashed).isNotNull();
+        // Add assertions for the expected hash value.
     }
 }
