@@ -95,32 +95,35 @@ class AccessTokenTest {
 
     // 261P
     @Test
-    void hashToken_shouldHashShortString() throws Exception {
+    void hashToken_shouldHashShortString() {
         String shortString = "abc123";
         String saltValue = "salt";
         String hashed = AccessToken.digestToken(shortString, saltValue);
 
         assertThat(hashed).isNotNull();
-        // Add assertions for the expected hash value.
+        assertThat(hashed).hasSize(64);
+        assertThat(hashed).matches("[a-f0-9]+");
     }
 
     @Test
-    void hashToken_shouldHashMediumString() throws Exception {
+    void hashToken_shouldHashMediumString() {
         String mediumString = "testing123";
         String saltValue = "salt";
         String hashed = AccessToken.digestToken(mediumString, saltValue);
 
         assertThat(hashed).isNotNull();
-        // Add assertions for the expected hash value.
+        assertThat(hashed).hasSize(64);
+        assertThat(hashed).matches("[a-f0-9]+");
     }
 
     @Test
-    void hashToken_shouldHashLongString() throws Exception {
-        String longString = "thisisaverylongstring";
+    void hashToken_shouldHashLongString() {
+        String longString = "thisisaverylongstringthisisaverylongstringthisisaverylongstringthisisaverylongstringthisisaverylongstringthisisaverylongstringthisisaverylongstringthisisaverylongstringthisisaverylongstringthisisaverylongstringthisisaverylongstringthisisaverylongstring";
         String saltValue = "salt";
         String hashed = AccessToken.digestToken(longString, saltValue);
 
         assertThat(hashed).isNotNull();
-        // Add assertions for the expected hash value.
+        assertThat(hashed).hasSize(64);
+        assertThat(hashed).matches("[a-f0-9]+");
     }
 }
