@@ -38,6 +38,8 @@ dependencies {
   implementation project.deps.felix
   implementation project.deps.guava
   implementation project.deps.jodaTime
+    testImplementation 'junit:junit:4.13.1'
+  testImplementation 'junit:junit:4.13.1'
   compileOnly project.deps.bouncyCastle
   annotationProcessor project.deps.lombok
   compileOnly project.deps.lombok
