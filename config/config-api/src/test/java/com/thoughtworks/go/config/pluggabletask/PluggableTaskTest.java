@@ -28,44 +28,72 @@ import com.thoughtworks.go.plugin.api.task.TaskConfig;
 import com.thoughtworks.go.plugin.api.task.TaskConfigProperty;
 import com.thoughtworks.go.plugin.api.task.TaskView;
 import com.thoughtworks.go.security.GoCipher;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.provider.Arguments;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class PluggableTaskTest {
     @Test
+
     public void testConfigAsMap() throws Exception {
         PluginConfiguration pluginConfiguration = new PluginConfiguration("test-plugin-id", "13.4");
-
-        GoCipher cipher = new GoCipher();
-        List<String> keys = List.of("Avengers 1", "Avengers 2", "Avengers 3", "Avengers 4");
-        List<String> values = List.of("Iron man", "Hulk", "Thor", "Captain America");
-
-        Configuration configuration = new Configuration(
-                new ConfigurationProperty(new ConfigurationKey(keys.get(0)), new ConfigurationValue(values.get(0))),
-                new ConfigurationProperty(new ConfigurationKey(keys.get(1)), new ConfigurationValue(values.get(1))),
-                new ConfigurationProperty(new ConfigurationKey(keys.get(2)), new ConfigurationValue(values.get(2))),
-                new ConfigurationProperty(new ConfigurationKey(keys.get(3)), null, new EncryptedConfigurationValue(cipher.encrypt(values.get(3))), cipher)
-        );
+        Configuration configuration = createTestConfiguration();
 
         PluggableTask task = new PluggableTask(pluginConfiguration, configuration);
 
         Map<String, Map<String, String>> configMap = task.configAsMap();
-        assertThat(configMap.keySet().size(), is(keys.size()));
-        assertThat(configMap.values().size(), is(values.size()));
-        assertThat(configMap.keySet().containsAll(keys), is(true));
-        for (int i = 0; i < keys.size(); i++) {
-            assertThat(configMap.get(keys.get(i)).get(PluggableTask.VALUE_KEY), is(values.get(i)));
+
+        assertEquals(configuration.size(), configMap.size());
+
+        for (ConfigurationProperty property : configuration) {
+            String propertyName = property.getConfigKeyName();
+            assertTrue(configMap.containsKey(propertyName));
+
+            Map<String, String> propertyMap = configMap.get(propertyName);
+            assertNotNull(propertyMap);
+
+            String expectedValue = property.getValue();
+            assertEquals(expectedValue, propertyMap.get(PluggableTask.VALUE_KEY));
+
+            if (!property.errors().isEmpty()) {
+                assertTrue(propertyMap.containsKey(PluggableTask.ERRORS_KEY));
+                String expectedErrors = String.join(", ", property.errors().getAll());
+                assertEquals(expectedErrors, propertyMap.get(PluggableTask.ERRORS_KEY));
+            } else {
+                assertFalse(propertyMap.containsKey(PluggableTask.ERRORS_KEY));
+            }
         }
+    }
+
+    private Configuration createTestConfiguration() {
+        List<String> keys = Arrays.asList("Avengers 1", "Avengers 2", "Avengers 3", "Avengers 4");
+        List<String> values = Arrays.asList("Iron man", "Hulk", "Thor", "Captain America");
+        List<Boolean> hasErrors = Arrays.asList(false, true, false, true); // Simulate properties with and without errors
+
+        Configuration configuration = new Configuration();
+        for (int i = 0; i < keys.size(); i++) {
+            ConfigurationProperty property;
+            if (hasErrors.get(i)) {
+                // Simulate a property with errors
+                property = new ConfigurationProperty(new ConfigurationKey(keys.get(i)), null, null, null);
+                property.addError("Validation error for " + keys.get(i), "");
+            } else {
+                property = new ConfigurationProperty(new ConfigurationKey(keys.get(i)), new ConfigurationValue(values.get(i)));
+            }
+            configuration.add(property);
+        }
+        return configuration;
     }
 
     @Test
@@ -107,9 +135,9 @@ public class PluggableTaskTest {
     @Test
     public void shouldPopulatePropertiesForDisplay() throws Exception {
         Configuration configuration = new Configuration(
-                ConfigurationPropertyMother.create("KEY1", false, "value1"),
-                ConfigurationPropertyMother.create("Key2", false, "value2"),
-                ConfigurationPropertyMother.create("key3", true, "encryptedValue1"));
+            ConfigurationPropertyMother.create("KEY1", false, "value1"),
+            ConfigurationPropertyMother.create("Key2", false, "value2"),
+            ConfigurationPropertyMother.create("key3", true, "encryptedValue1"));
 
         PluggableTask task = new PluggableTask(new PluginConfiguration("abc.def", "1"), configuration);
 
@@ -142,9 +170,9 @@ public class PluggableTaskTest {
         PluggableTaskConfigStore.store().setPreferenceFor(pluginId, new TaskPreference(taskDetails));
 
         Configuration configuration = new Configuration(
-                ConfigurationPropertyMother.create("KEY3", true, "encryptedValue1"),
-                ConfigurationPropertyMother.create("KEY1", false, "value1"),
-                ConfigurationPropertyMother.create("KEY2", false, "value2")
+            ConfigurationPropertyMother.create("KEY3", true, "encryptedValue1"),
+            ConfigurationPropertyMother.create("KEY1", false, "value1"),
+            ConfigurationPropertyMother.create("KEY2", false, "value2")
         );
 
         PluggableTask task = new PluggableTask(new PluginConfiguration(pluginId, "1"), configuration);
@@ -171,8 +199,8 @@ public class PluggableTaskTest {
         PluggableTaskConfigStore.store().setPreferenceFor(pluginId, new TaskPreference(taskDetails));
 
         Configuration configuration = new Configuration(
-                ConfigurationPropertyMother.create("KEY1", false, "value1"),
-                ConfigurationPropertyMother.create("KEY2", false, "value2")
+            ConfigurationPropertyMother.create("KEY1", false, "value1"),
+            ConfigurationPropertyMother.create("KEY2", false, "value2")
         );
 
         PluggableTask task = new PluggableTask(new PluginConfiguration(pluginId, "1"), configuration);
@@ -365,7 +393,7 @@ public class PluggableTaskTest {
     @Test
     public void shouldBeAbleToGetTaskConfigRepresentation() {
         List<ConfigurationProperty> configurationProperties = List.of(ConfigurationPropertyMother.create("source", false, "src_dir"),
-                ConfigurationPropertyMother.create("destination", false, "des_dir"));
+            ConfigurationPropertyMother.create("destination", false, "des_dir"));
 
         Configuration configuration = new Configuration();
         configuration.addAll(configurationProperties);
