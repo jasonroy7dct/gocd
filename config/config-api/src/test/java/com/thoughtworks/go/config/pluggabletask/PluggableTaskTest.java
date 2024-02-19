@@ -659,6 +659,22 @@ public class PluggableTaskTest {
     private PluggableTask createPluggableTask() {
         return new PluggableTask(new PluginConfiguration("pluginId", "1.0"), new Configuration());
     }
+    @Test
+    public void taskTypeForDisplay() throws Exception {
+        PluggableTask task = createPluggableTask();
+        Assertions.assertThat(task.getTypeForDisplay()).isEqualTo("Pluggable Task");
+    }
+
+    @Test
+    public void testEqualityWithSuperClassEquality() {
+        Configuration configuration = new Configuration();
+        configuration.add(new ConfigurationProperty(new ConfigurationKey("key"), new ConfigurationValue("value")));
+
+        PluggableTask task1 = new PluggableTask(new PluginConfiguration("pluginId1", "2.0"), new Configuration());
+        PluggableTask task2 = new PluggableTask(new PluginConfiguration("pluginId2", "1.0"), new Configuration());
+
+        assertFalse(task2.equals(task1));
+    }
 
 
 }
