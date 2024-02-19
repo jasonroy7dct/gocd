@@ -509,4 +509,156 @@ public class PluggableTaskTest {
         assertThat(taskProperty.getValue(), is(value));
         assertThat(taskProperty.getCssClass(), is(cssClass));
     }
+
+    @Test
+    public void testDefaultConstructor() {
+        PluginConfiguration expectedPluginConfiguration = new PluginConfiguration();
+        Configuration expectedConfiguration = new Configuration();
+
+        PluggableTask task = new PluggableTask();
+
+        assertNotNull(task);
+        assertEquals(expectedPluginConfiguration, task.getPluginConfiguration());
+        assertEquals(expectedConfiguration, task.getConfiguration());
+    }
+
+    @Test
+    public void testSetPluginConfiguration() {
+        PluginConfiguration expectedPluginConfiguration = new PluginConfiguration("test-plugin-id", "1.0");
+        PluggableTask task = new PluggableTask();
+
+        task.setPluginConfiguration(expectedPluginConfiguration);
+
+        assertEquals(expectedPluginConfiguration, task.getPluginConfiguration());
+    }
+
+    @Test
+    public void testEdgeCaseScenario() {
+        PluginConfiguration pluginConfiguration = new PluginConfiguration("test-plugin-id", "1.0");
+        Configuration emptyConfiguration = new Configuration();
+        PluggableTask taskWithEmptyConfig = new PluggableTask(pluginConfiguration, emptyConfiguration);
+
+        assertEquals(0, taskWithEmptyConfig.configAsMap().size());
+    }
+
+    @Test
+    public void comparePluggableTaskWithItself() throws Exception {
+        PluggableTask task = new PluggableTask(new PluginConfiguration("pluginId", "1.0"), new Configuration());
+        assertEquals(task, task);
+    }
+
+    @Test
+    public void testEqualityWithItself() {
+        PluggableTask task = createPluggableTask();
+        assertTrue(task.equals(task));
+    }
+
+    @Test
+    public void testEqualityWithNull() {
+        PluggableTask task = createPluggableTask();
+        assertFalse(task.equals(null));
+    }
+
+    @Test
+    public void testEqualityWithSameAttributes() {
+        PluggableTask task1 = createPluggableTask();
+        PluggableTask task2 = createPluggableTask();
+        assertTrue(task1.equals(task2));
+    }
+
+    @Test
+    public void testEqualityWithDifferentAttributes() {
+        PluggableTask task1 = createPluggableTask();
+        PluggableTask task2 = new PluggableTask(new PluginConfiguration("pluginId2", "1.0"), new Configuration());
+        assertFalse(task1.equals(task2));
+    }
+
+    @Test
+    public void testEqualityWithSuperclass() {
+        PluggableTask task1 = createPluggableTask();
+        PluggableTask task2 = createPluggableTask();
+
+        task2.setPluginConfiguration(new PluginConfiguration("differentPluginId", "1.0"));
+
+        assertFalse(task1.equals(task2));
+    }
+
+    @Test
+    public void testEqualityWithNullConfiguration() {
+        PluggableTask task1 = createPluggableTask();
+        PluggableTask task2 = createPluggableTask();
+
+        task2.setPluginConfiguration(null);
+
+        assertFalse(task1.equals(task2));
+    }
+
+    @Test
+    public void testEqualityWithNonNullConfiguration() {
+        PluggableTask task1 = createPluggableTask();
+        PluggableTask task2 = createPluggableTask();
+
+        Configuration differentConfiguration = new Configuration();
+        differentConfiguration.add(new ConfigurationProperty(new ConfigurationKey("key"), new ConfigurationValue("value")));
+        task2.setPluginConfiguration(new PluginConfiguration("differentPluginId", "1.0"));
+
+        assertFalse(task1.equals(task2));
+    }
+
+    @Test
+    public void testEqualityWithDifferentClass() {
+        PluggableTask task = createPluggableTask();
+        assertFalse(task.equals(new Object()));
+    }
+
+    @Test
+    public void testEqualityWithBothNullConfigurations() {
+        PluggableTask task1 = new PluggableTask();
+        PluggableTask task2 = new PluggableTask();
+
+        assertTrue(task1.equals(task2));
+    }
+
+    @Test
+    public void testEqualityWithOneNullConfiguration() {
+        Configuration configuration = new Configuration();
+        configuration.add(new ConfigurationProperty(new ConfigurationKey("key"), new ConfigurationValue("value")));
+        PluggableTask task1 = new PluggableTask(new PluginConfiguration("pluginId", "1.0"), configuration);
+        PluggableTask task2 = new PluggableTask(new PluginConfiguration("pluginId", "1.0"), null);
+
+        assertFalse(task1.equals(task2));
+    }
+
+    @Test
+    public void testEqualityWithDifferentConfigurations() {
+        Configuration configuration1 = new Configuration();
+        configuration1.add(new ConfigurationProperty(new ConfigurationKey("key"), new ConfigurationValue("value")));
+        PluggableTask task1 = new PluggableTask(new PluginConfiguration("pluginId", "1.0"), configuration1);
+
+        Configuration configuration2 = new Configuration();
+        configuration2.add(new ConfigurationProperty(new ConfigurationKey("key"), new ConfigurationValue("differentValue")));
+        PluggableTask task2 = new PluggableTask(new PluginConfiguration("pluginId", "1.0"), configuration2);
+
+        assertFalse(task1.equals(task2));
+    }
+
+    @Test
+    public void testHashCodeConsistency() {
+        PluggableTask task = createPluggableTask();
+        int initialHashCode = task.hashCode();
+        assertEquals(initialHashCode, task.hashCode());
+    }
+
+    @Test
+    public void testHashCodeCollisionAvoidance() {
+        PluggableTask task1 = createPluggableTask();
+        PluggableTask task2 = new PluggableTask(new PluginConfiguration("pluginId2", "1.0"), new Configuration());
+        assertNotEquals(task1.hashCode(), task2.hashCode());
+    }
+
+    private PluggableTask createPluggableTask() {
+        return new PluggableTask(new PluginConfiguration("pluginId", "1.0"), new Configuration());
+    }
+
+
 }
