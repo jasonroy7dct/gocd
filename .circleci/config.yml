@@ -1,13 +1,20 @@
-name: Run Tests
-on: [push, pull_request]
+version: 2.1
+
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  build:
+    docker:
+      - image: cimg/openjdk:11.0  # Use CircleCI's OpenJDK image
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up JDK 11
-      uses: actions/setup-java@v2
-      with:
-        java-version: '11'
-    - name: Run tests
-      run: ./gradlew test --tests config/config-api/src/test/java/com/thoughtworks/go/config/pluggabletask/PluggableTaskTest.java
+      - checkout  # Check out source code
+      - run: name: Install dependencies
+        command: |
+          sudo apt-get update
+          sudo apt-get install -y gradle  # Install Gradle, if your project requires it
+      - run: name: Run tests
+        command: ./gradlew test --tests config/config-api/src/test/java/com/thoughtworks/go/config/pluggabletask/PluggableTaskTest.java
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build
