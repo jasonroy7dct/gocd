@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: cimg/openjdk:11.0  # Use CircleCI's OpenJDK image
+      - image: cimg/openjdk:11.0  # Use CircleCI's OpenJDK image ...
     steps:
       - checkout  # Check out source code
       - run: name: Install dependencies
