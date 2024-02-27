@@ -6,11 +6,11 @@ jobs:
       - image: cimg/openjdk:11.0  # Use CircleCI's OpenJDK image ...
     steps:
       - checkout  # Check out source code
-      # - run:
-      #     name: Install dependencies
-      #     command: |
-      #       sudo apt-get update
-      #       sudo apt-get install -y gradle  # Install Gradle, if your project requires it
+      - run:
+          name: Install dependencies
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends gradle
       - run:
           name: Run tests
           command: ./gradlew test --tests config/config-api/src/test/java/com/thoughtworks/go/config/pluggabletask/PluggableTaskTest.java
