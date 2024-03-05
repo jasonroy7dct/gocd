@@ -31,6 +31,7 @@ public abstract class HtmlErrorPage {
                 .replaceAll(buildRegex("error_message"), StringEscapeUtils.escapeHtml4(message));
     }
 
+
     private static String buildRegex(final String value) {
         return "\\{\\{" + value + "\\}\\}";
     }
