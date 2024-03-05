@@ -1,0 +1,17 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: cimg/openjdk:17.0  # Use CircleCI's OpenJDK 17 image
+    steps:
+      - checkout  # Check out source code
+      - run:
+          name: Run tests
+          command: gradle -p config/config-api clean build test
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build
